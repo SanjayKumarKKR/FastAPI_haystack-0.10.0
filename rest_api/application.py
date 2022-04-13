@@ -5,15 +5,16 @@ from typing import List, Optional
 from pydantic import BaseModel
 import uvicorn
 from haystack.file_converter import ImageToTextConverter
-from haystack.document_stores import ElasticsearchDocumentStore
-from haystack.nodes import EmbeddingRetriever
+from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
+from haystack.retriever.dense import EmbeddingRetriever
 import pandas as pd
 import os
-from haystack.pipelines import FAQPipeline
-from haystack.nodes import ElasticsearchRetriever
-from haystack.utils import clean_wiki_text, convert_files_to_dicts
-from haystack.nodes import FARMReader
-from haystack.pipelines import ExtractiveQAPipeline
+from haystack.pipeline import FAQPipeline
+from haystack.retriever.sparse import ElasticsearchRetriever
+from haystack.preprocessor.cleaning import clean_wiki_text
+from haystack.preprocessor.utils import convert_files_to_dicts
+from haystack.reader.farm import FARMReader
+from haystack.pipeline import ExtractiveQAPipeline
 import s3fs
 import boto3
 import fitz
