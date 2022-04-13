@@ -14,10 +14,11 @@ RUN apt-get install libpoppler-cpp-dev pkg-config -y --fix-missing
 RUN apt-get install tesseract-ocr libtesseract-dev poppler-utils -y
 
 # copy code
-COPY haystack /home/user/haystack
+# COPY haystack /home/user/haystack
 
 # install as a package
 COPY setup.py requirements.txt README.md /home/user/
+RUN pip install farm-haystack=0.10.0
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install boto3
 RUN pip install s3fs
