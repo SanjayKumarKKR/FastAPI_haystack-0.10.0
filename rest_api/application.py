@@ -18,6 +18,9 @@ from haystack.pipeline import ExtractiveQAPipeline
 import s3fs
 import boto3
 import fitz
+import nltk
+
+nltk.download('punkt')
 
 s3 = boto3.client('s3', aws_access_key_id='AKIAUOJDVU6XYMY4EPMZ' , aws_secret_access_key='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')
 
@@ -238,8 +241,9 @@ async def DeleteAll():
         return {'error': e}
 
 #pypy3 -m pip install --extra-index https://antocuni.github.io/pypy-wheels/ubuntu cpython numpy
-
-uvicorn.run(app, host="0.0.0.0", port=8001)
+print("app is loading")
+uvicorn.run(app, host="0.0.0.0", port=8000)
+print("app is loaded")
 
 #sudo docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.9.2
 
