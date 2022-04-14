@@ -26,7 +26,7 @@ s3 = boto3.client('s3', aws_access_key_id='AKIAUOJDVU6XYMY4EPMZ' , aws_secret_ac
 
 converter = ImageToTextConverter(remove_numeric_tables=True, valid_languages=["eng"])
 
-document_store = ElasticsearchDocumentStore(host="0.0.0.0", username="", password="",
+document_store = ElasticsearchDocumentStore(host="elasticsearch", username="", password="",
                                             index="document",
                                             embedding_field="question_emb",
                                             embedding_dim=384,
@@ -242,8 +242,12 @@ async def DeleteAll():
 
 #pypy3 -m pip install --extra-index https://antocuni.github.io/pypy-wheels/ubuntu cpython numpy
 print("app is loading")
-uvicorn.run(app, host="0.0.0.0", port=9876)
+# uvicorn.run(app, host="0.0.0.0", port=9000)
 print("app is loaded")
 
 #sudo docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.9.2
+
+#docker run -p 8000:8000 --net tulip-net -e "DOCUMENTSTORE_PARAMS_HOST=elasticsearch" --name haystack haystack
+
+# docker run -d -p 9200:9200 --net tulip-net -e "discovery.type=single-node" --name elasticsearch  elasticsearch:7.9.2
 
