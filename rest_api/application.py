@@ -242,7 +242,7 @@ async def DeleteAll():
 
 #pypy3 -m pip install --extra-index https://antocuni.github.io/pypy-wheels/ubuntu cpython numpy
 print("app is loading")
-uvicorn.run(app, host="0.0.0.0", port=8000)
+uvicorn.run(app, host="0.0.0.0", port=9876)
 print("app is loaded")
 
 #sudo docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.9.2
