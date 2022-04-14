@@ -23,7 +23,7 @@ s3 = boto3.client('s3', aws_access_key_id='AKIAUOJDVU6XYMY4EPMZ' , aws_secret_ac
 
 converter = ImageToTextConverter(remove_numeric_tables=True, valid_languages=["eng"])
 
-document_store = ElasticsearchDocumentStore(host="localhost", username="", password="",
+document_store = ElasticsearchDocumentStore(host="0.0.0.0", username="", password="",
                                             index="document",
                                             embedding_field="question_emb",
                                             embedding_dim=384,
