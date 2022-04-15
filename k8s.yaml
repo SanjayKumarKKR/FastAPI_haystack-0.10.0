@@ -3,11 +3,17 @@ kind: Elasticsearch
 metadata:
   name: quickstart
 spec:
-  version: 8.1.2
+  version: 7.10.2
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   nodeSets:
   - name: data
     count: 1
     config:
+      node.name: quickstart-es-data-0
+      cluster.initial_master_nodes: ["quickstart-es-data-0"]
       node.store.allow_mmap: false
     podTemplate:
       spec:
