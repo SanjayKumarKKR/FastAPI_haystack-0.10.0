@@ -26,6 +26,7 @@ RUN pip install fastapi
 RUN pip install -U PyMuPDF
 
 RUN pip install -e .
+ENV PYTHONUNBUFFERED=1
 
 # copy saved models
 COPY README.md models* /home/user/models/

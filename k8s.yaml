@@ -20,3 +20,23 @@ spec:
         volumes:
         - name: elasticsearch-data
           emptyDir: {}
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: haystack
+  name: haystack
+spec:
+  containers:
+  - image: sanjaykumarkkr/haystack:1.0.21
+    name: haystack
+    ports:
+    - containerPort: 8000
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}

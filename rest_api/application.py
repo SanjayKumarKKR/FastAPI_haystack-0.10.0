@@ -19,14 +19,26 @@ import s3fs
 import boto3
 import fitz
 import nltk
+import logging
+import sys
 
 nltk.download('punkt')
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("my-app")
+
+ch = logging.StreamHandler(sys.stdout)  
+ch.setLevel(logging.DEBUG)  
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  
+ch.setFormatter(formatter)  
+logger.addHandler(ch)  
+
 
 s3 = boto3.client('s3', aws_access_key_id='AKIAUOJDVU6XYMY4EPMZ' , aws_secret_access_key='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')
 
 converter = ImageToTextConverter(remove_numeric_tables=True, valid_languages=["eng"])
 
-document_store = ElasticsearchDocumentStore(host="quickstart-es-http", username="elastic", password="13717xJ35fs4f9pefRS6hlsv",timeout=3000,
+document_store = ElasticsearchDocumentStore(host="quickstart-es-http", username="elastic", password="IN39e9f59nG1I770UxBSUC0p",timeout=3000,
                                             index="document",
                                             embedding_field="question_emb",
                                             embedding_dim=384,
@@ -110,21 +122,23 @@ async def QuestionGenerator(customerName: str, filename: str, inputfilebucket: s
 
 @app.post("/upload-file/")
 async def ImageToText(customerName: str, filename: str, inputfilebucket: str, outputquestionbucket: str):
-    try:
+        print('cleaner is up', flush=True)
+        print("creating image_downloads directory", flush=True)
         os.makedirs("image_downloads", exist_ok=True)
         os.makedirs("image_downloads/" + customerName, exist_ok=True)
+        print("created image_downloads directory", flush=True)
         file_location = os.getcwd() + "/image_downloads/" + customerName + "/" + filename
         s3.download_file(inputfilebucket, customerName + "/" + filename, 'image_downloads/' + customerName + "/" + filename)
         doc = converter.convert(file_path=file_location, meta=None)
         if os.path.exists(file_location):
             os.remove(file_location)
         else:
-            print("The file does not exist")
-        # print(doc)
+            print("The file does not exist", flush=True)
+        print(doc)
         os.makedirs("images", exist_ok=True)
         os.makedirs("images/" + customerName, exist_ok=True)
-        contents = doc['content']
-        print(contents)
+        contents = doc['text']
+        print(contents, flush=True)
         file_location = os.getcwd() + "/images/" + customerName + "/" + filename + ".txt"
         with open(file_location, "wb+") as file_object:
             file_object.write(contents.encode())
@@ -132,10 +146,11 @@ async def ImageToText(customerName: str, filename: str, inputfilebucket: str, ou
         with fs.open('s3://'+ inputfilebucket +'/'+ customerName + '/' + filename + '.txt', 'wb') as f:
             f.write(contents.encode())
         dicts = convert_files_to_dicts(dir_path=("images/" + customerName + "/"))
+        print(dicts, flush=True)
         dicts[0]['customerName'] = customerName
         dicts[0]['name'] = filename
         dicts[0]['type'] = 'image'
-        # print(dicts)
+        print(dicts, flush=True)
         document_store.write_documents(dicts)
         filter = {"name": [filename], "customerName" : [customerName]}
         document_store.update_embeddings(retrieverCSV,filters=filter)
@@ -143,11 +158,9 @@ async def ImageToText(customerName: str, filename: str, inputfilebucket: str, ou
         if os.path.exists(file_location):
             os.remove(file_location)
         else:
-            print("The file does not exist")
+            print("The file does not exist", flush=True)
         return {"info": f"file '{filename}' saved at '{file_location}'",
                 "data": doc}
-    except Exception as e:
-        return {'error': e}
 
 def generatequestion(outputquestionbucket,customerName,filename):
     file_location = os.getcwd() + "/images/" + customerName + "/" + filename + ".txt"
@@ -158,7 +171,7 @@ def generatequestion(outputquestionbucket,customerName,filename):
     if os.path.exists(file_location):
         os.remove(file_location)
     else:
-        print("The file does not exist")
+        print("The file does not exist", flush=True)
     list_dataframe = pd.DataFrame(result)
     bytes_to_write = list_dataframe.to_csv(None).encode()
     fs = s3fs.S3FileSystem(anon=False, key='AKIAUOJDVU6XYMY4EPMZ', secret='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')
@@ -167,7 +180,6 @@ def generatequestion(outputquestionbucket,customerName,filename):
 
 @app.post("/csv-faq-file/")
 async def CSVFAQ(customerName: str, filename: str, inputfilebucket: str, outputquestionbucket: str):
-    try:
         os.makedirs("csv_downloads", exist_ok=True)
         os.makedirs("csv_downloads/" + customerName, exist_ok=True)
         file_location = os.getcwd() + "/csv_downloads/" + customerName + "/" + filename
@@ -178,21 +190,20 @@ async def CSVFAQ(customerName: str, filename: str, inputfilebucket: str, outputq
         df['filename'] = filename
         df['customerName'] = customerName
         df['type'] = 'csv'
-        print(df.head())
+        print(df.head(), flush=True)
         questions = list(df["question"].values)
+        print(questions, flush=True)
         df["question_emb"] = retrieverCSV.embed_queries(texts=questions)
-        df = df.rename(columns={"question": "content"})
+        df = df.rename(columns={"question": "text"})
         docs_to_index = df.to_dict(orient="records")
-        # print(docs_to_index)
+        print(docs_to_index, flush=True)
         if os.path.exists(file_location):
             os.remove(file_location)
         else:
-            print("The file does not exist")
+            print("The file does not exist", flush=True)
         document_store.write_documents(docs_to_index)
         return {"info": f"file '{file_location}' saved at '{file_location}'",
                 "status": "file saved successfully"}
-    except Exception as e:
-        return {'error': e}
 
 
 @app.post("/csv-query/")
@@ -241,9 +252,9 @@ async def DeleteAll():
         return {'error': e}
 
 #pypy3 -m pip install --extra-index https://antocuni.github.io/pypy-wheels/ubuntu cpython numpy
-print("app is loading")
+print("app is loading", flush=True)
 # uvicorn.run(app, host="0.0.0.0", port=9000)
-print("app is loaded")
+print("app is loaded", flush=True)
 
 #sudo docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.9.2
 
